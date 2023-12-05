@@ -49,7 +49,6 @@ pub(crate) fn day01_part2(path: &str) {
             }
         }
         let i = first.unwrap() * 10 + last.unwrap_or_else(|| first.unwrap());
-        println!("{:?}", i);
         result += i;
     }
 
