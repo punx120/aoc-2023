@@ -40,12 +40,9 @@ fn process_line(line: &str) -> (i32, i32) {
     }
 
     let mut last = 0_i32;
+    let mut first = 0_i32;
     for i in (0..end.len()).rev() {
         last = last + end[i];
-    }
-
-    let mut first = 0_i32;
-    for i in (0..beg.len()).rev() {
         first = beg[i] - first;
     }
 
