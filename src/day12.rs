@@ -55,9 +55,9 @@ fn process(line: &str, part2: bool) -> u64 {
 }
 
 pub(crate) fn day12(path: &str, part2: bool) {
-    let mut ans = 0_u64;
+    let mut ans = 0;
     for line in read_to_string(path).unwrap().lines() {
-        ans += process(line, part2) as u64;
+        ans += process(line, part2);
     }
     println!("{ans}");
 }
