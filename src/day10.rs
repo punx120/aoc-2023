@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::fs::read_to_string;
+use crate::day10::Dir::{East, North, South, West};
 
 fn find_start(rows: &Vec<Vec<char>>) -> ((usize, usize), char) {
     for r in 0..rows.len() {
@@ -107,12 +108,21 @@ fn build_map(path: &str) -> ((usize, usize), Vec<Vec<char>>) {
     return (start, rows);
 }
 
+#[derive(Hash, Eq, PartialEq, Debug, Copy, Clone)]
+enum Dir {
+    North,
+    South,
+    East,
+    West
+}
+
 pub(crate) fn day10(path: &str) {
     let (start, rows) = build_map(path);
 
     let mut visited: HashSet<(usize, usize)> = HashSet::new();
     let mut to_visit: Vec<(usize, usize)> = Vec::new();
     let mut steps = 0_u32;
+    let mut map: Vec<Vec<bool>> = Vec::new();
 
     find_to_visit(&start, &rows, &mut to_visit);
 
@@ -120,6 +130,7 @@ pub(crate) fn day10(path: &str) {
         let mut possibilities: Vec<(usize, usize)> = Vec::new();
         for point in to_visit.iter() {
             visited.insert(*point);
+            mark_visited(*point, &mut map);
             find_to_visit(point, &rows, &mut possibilities);
         }
         to_visit.clear();
@@ -127,10 +138,112 @@ pub(crate) fn day10(path: &str) {
         steps += 1;
     }
 
-    println!("steps={steps}")
+    let mut points: Vec<(usize, usize)> = Vec::new();
+    let mut current = start;
+    let mut dir = if vec!['|', '7', 'J', 'L', 'F'].contains(&rows[start.0][start.1]) {
+        North
+    } else {
+        East
+    };
+
+    loop {
+        let (next, d) = find_next(current, &dir, &rows);
+
+        if next == start {
+            break;
+        }
+        if dir != d {
+            points.push(current);
+        }
+
+        current = next;
+        dir = d;
+    }
+
+
+    let mut integral = 0i32;
+    let mut length = 0i32;
+    let mut prev: Option<(usize, usize)> = None;
+    points.push(start);
+    for p in points {
+        if !prev.is_none() {
+            let dy = p.1 as i32 - prev.unwrap().1 as i32;
+            let dx = p.0 as i32 - prev.unwrap().0 as i32;
+            integral += prev.unwrap().0 as i32 * dy;
+            length += dy.abs() + dx.abs();
+        }
+        prev = Some(p);
+    }
+
+
+
+    let ans = integral.abs() + 1 + length / 2;
+    println!("steps={steps} area={ans} integral={}", integral.abs() + 1 - length / 2);
 }
 
-pub(crate) fn day10_part2(path: &str) {
-    let (start, rows) = build_map(path);
+fn find_next(c: (usize, usize), d: &Dir, rows: &Vec<Vec<char>>) -> ((usize, usize), Dir) {
+    let tile =rows[c.0][c.1];
+    match tile {
+        '|' => {
+            match d {
+                North => return ((c.0-1, c.1), North),
+                South => return ((c.0+1, c.1), South),
+                _ => panic!("error")
+            }
+        },
+        '-' => {
+            match d {
+                East => return ((c.0, c.1+1), East),
+                West => return ((c.0, c.1-1), West),
+                _ => panic!("error")
+            }
+        },
+        '7' => {
+            match d {
+                North => return ((c.0, c.1-1), West),
+                East => return ((c.0+1, c.1), South),
+                _ => panic!("error")
+            }
+        },
+        'J' => {
+            match d {
+                South => return ((c.0, c.1 - 1), West),
+                East => return ((c.0 - 1, c.1), North),
+                _ => panic!("error")
+            }
+        },
+        'L' => {
+            match d {
+                South => return ((c.0, c.1 + 1), East),
+                West => return ((c.0 - 1, c.1), North),
+                _ => panic!("error")
+            }
+        },
+        'F' => {
+            match d {
+                North => return ((c.0, c.1 + 1), East),
+                West => return ((c.0 + 1, c.1), South),
+                _ => panic!("error")
+            }
+        },
+        _ => {
+            panic!("Unsupported!")
+        }
+    }
+}
+fn mark_visited(p0: (usize, usize), map: &mut Vec<Vec<bool>>) {
+    if p0.0 >= map.len() {
+        for _ in 0..=(p0.0 - map.len()) {
+            map.push(Vec::new());
+        }
+    }
 
+    let row= &mut map[p0.0];
+    if p0.1 >= row.len() {
+        for _ in 0..=(p0.1 - row.len()) {
+            row.push(false);
+        }
+    }
+
+    row[p0.1] = true;
 }
