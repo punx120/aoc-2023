@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs::read_to_string;
-use std::thread::panicking;
 
 struct Op {
     attribute: char,
